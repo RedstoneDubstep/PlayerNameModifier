@@ -6,7 +6,7 @@
 # The name of the mod loader type to load - for regular FML @Mod mods it should be javafml
 modLoader = "javafml" #mandatory
 # A version range to match for said mod loader - for regular FML @Mod it will be the forge version
-loaderVersion = "[1,)" #mandatory
+loaderVersion = "[46,)" #mandatory
 # The license for you mod. This is mandatory metadata and allows for easier comprehension of your redistributive properties.
 # Review your options at https://choosealicense.com/. All rights reserved is the default copyright stance, and is thus the default here.
 license="All Rights Reserved"
@@ -28,8 +28,6 @@ displayName = "PlayerNameModifier" #mandatory
 #credits="" #optional
 # A text field displayed in the mod UI
 #authors="Redstone_Dubstep" #optional
-# Display Test controls the display for your mod in the server connection screen. For serverside only mods it's IGNORE_SERVER_VERSION
-displayTest="IGNORE_SERVER_VERSION" # MATCH_VERSION is the default if nothing is specified (#optional)
 # The description text for the mod (multi line!) (#mandatory)
 description = '''
 A mod that allows changing a player's display name using vanilla tags, lightweight and fully configurable
@@ -47,11 +45,11 @@ A mod that allows changing a player's display name using vanilla tags, lightweig
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
 [[dependencies.playernamemodifier]] #optional
     # the modid of the dependency
-    modId="neoforge" #mandatory
+    modId="forge" #mandatory
     # Does this dependency have to exist - if not, ordering below must be specified
-    type="required" #mandatory
+    mandatory=true #mandatory
     # The version range of the dependency
-    versionRange="[20.4.1-beta,)" #mandatory
+    versionRange="[46,)" #mandatory
     # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
     ordering="NONE"
     # Side this dependency is applied on - BOTH, CLIENT or SERVER

@@ -6,23 +6,19 @@ import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.mojang.brigadier.StringReader;
-
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.ParserUtils;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.contents.PlainTextContents;
+import net.minecraft.network.chat.contents.LiteralContents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.PlayerTeam;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.event.TickEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber
 public class ModifierEventListener {
@@ -86,7 +82,7 @@ public class ModifierEventListener {
 		CommandSourceStack stack = new CommandSourceStack(player, player.position(), player.getRotationVector(), (ServerLevel)player.level(), 4, player.getName().getString(), oldDisplayName, player.level().getServer(), player);
 
 		try {
-			modifiedName = ComponentUtils.updateForEntity(stack, ParserUtils.parseJson(new StringReader(pattern), ComponentSerialization.CODEC), player, 0);
+			modifiedName = ComponentUtils.updateForEntity(stack, Component.Serializer.fromJson(pattern), player, 0);
 		}
 		catch (Exception e) {
 			PlayerNameModifier.LOGGER.warn(e);
@@ -99,7 +95,7 @@ public class ModifierEventListener {
 		nameParts.add(modifiedName.plainCopy().withStyle(modifiedName.getStyle()));
 
 		for (Component sibling : nameParts) {
-			if (sibling.getContents() instanceof PlainTextContents.LiteralContents contents && contents.text().contains("%player")) {
+			if (sibling.getContents() instanceof LiteralContents contents && contents.text().contains("%player")) {
 				String[] splitString = contents.text().split("%player", -1); //-1 so empty trailing strings are preserved
 				StringBuilder resultString = new StringBuilder(splitString[0]);
 
@@ -108,7 +104,7 @@ public class ModifierEventListener {
 					resultString.append(splitString[i]);
 				}
 
-				sibling = Component.literal(resultString.toString());
+				sibling = Component.literal(resultString.toString()).withStyle(sibling.getStyle());
 			}
 
 			playerInsertedName.append(sibling);

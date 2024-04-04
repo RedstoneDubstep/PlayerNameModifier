@@ -9,30 +9,29 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.electronwill.nightconfig.core.AbstractCommentedConfig;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.config.ModConfigEvent;
-import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.DEDICATED_SERVER)
 public class ModifierConfig {
-	public static final ModConfigSpec SERVER_SPEC;
+	public static final ForgeConfigSpec SERVER_SPEC;
 	public static final Config CONFIG;
 
 	static {
-		final Pair<Config, ModConfigSpec> specPair = new ModConfigSpec.Builder().configure(Config::new);
+		final Pair<Config, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(Config::new);
 
 		SERVER_SPEC = specPair.getRight();
 		CONFIG = specPair.getLeft();
 	}
 
 	public static class Config {
-		public ConfigValue<List<AbstractCommentedConfig>> playerNameModifiers;
+		public ForgeConfigSpec.ConfigValue<List<AbstractCommentedConfig>> playerNameModifiers;
 		public HashMap<List<String>, Pair<String, String>> replacementMap;
 
-		Config(ModConfigSpec.Builder builder) {
+		Config(ForgeConfigSpec.Builder builder) {
 			playerNameModifiers = builder
 					.comment(" --- PlayerNameModifier Config File --- ",
 							"A list of all player name modifiers that should apply to players with the given entity tag.",
