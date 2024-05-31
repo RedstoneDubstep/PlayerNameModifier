@@ -11,12 +11,12 @@ import com.electronwill.nightconfig.core.AbstractCommentedConfig;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.DEDICATED_SERVER)
+@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, value = Dist.DEDICATED_SERVER)
 public class ModifierConfig {
 	public static final ModConfigSpec SERVER_SPEC;
 	public static final Config CONFIG;

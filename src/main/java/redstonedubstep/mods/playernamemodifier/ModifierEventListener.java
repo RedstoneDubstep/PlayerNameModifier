@@ -16,20 +16,21 @@ import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.PlayerTeam;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.event.TickEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class ModifierEventListener {
 	private static final List<String> SCHEDULED_REPEATS = new ArrayList<>();
 
 	@SubscribeEvent
-	public static void onServerTick(TickEvent.ServerTickEvent event) {
+	public static void onServerTick(ServerTickEvent.Pre event) {
 		List<String> scheduledRepeats = new ArrayList<>(SCHEDULED_REPEATS);
 
 		scheduledRepeats.forEach(s -> {
@@ -42,9 +43,7 @@ public class ModifierEventListener {
 
 	@SubscribeEvent(priority = EventPriority.LOW)
 	public static void onPlayerName(PlayerEvent.NameFormat event) {
-		Player player = event.getEntity();
-
-		if (player.level().isClientSide)
+		if (!(event.getEntity() instanceof ServerPlayer player))
 			return;
 		//The logic of ignoring, re-requesting and using the name format event is required, because the component pattern can reference back to the player's prior display name (e.g. via selector components such as @s)
 		//To prevent the display name from consequently getting longer every time it refreshes, we need to run the refreshing once without our modification (to get a "clean" display name).
@@ -62,7 +61,9 @@ public class ModifierEventListener {
 
 	@SubscribeEvent(priority = EventPriority.LOW)
 	public static void onPlayerTabListName(PlayerEvent.TabListNameFormat event) {
-		Player player = event.getEntity();
+		if (!(event.getEntity() instanceof ServerPlayer player))
+			return;
+
 		Component tabDisplayName = event.getDisplayName();
 		Component modifiedName = modifyName(player, tabDisplayName != null ? tabDisplayName : Component.literal(player.getGameProfile().getName()), getPatterns(player, true));
 
@@ -70,7 +71,7 @@ public class ModifierEventListener {
 		event.setDisplayName(PlayerTeam.formatNameForTeam(player.getTeam(), modifiedName));
 	}
 
-	private static Component modifyName(Player player, Component oldDisplayName, List<String> patternStack) {
+	private static Component modifyName(ServerPlayer player, Component oldDisplayName, List<String> patternStack) {
 		if (patternStack.isEmpty())
 			return oldDisplayName;
 
@@ -86,7 +87,7 @@ public class ModifierEventListener {
 		CommandSourceStack stack = new CommandSourceStack(player, player.position(), player.getRotationVector(), (ServerLevel)player.level(), 4, player.getName().getString(), oldDisplayName, player.level().getServer(), player);
 
 		try {
-			modifiedName = ComponentUtils.updateForEntity(stack, ParserUtils.parseJson(new StringReader(pattern), ComponentSerialization.CODEC), player, 0);
+			modifiedName = ComponentUtils.updateForEntity(stack, ParserUtils.parseJson(((ServerPlayer) player).server.registryAccess(), new StringReader(pattern), ComponentSerialization.CODEC), player, 0);
 		}
 		catch (Exception e) {
 			PlayerNameModifier.LOGGER.warn(e);
@@ -108,7 +109,7 @@ public class ModifierEventListener {
 					resultString.append(splitString[i]);
 				}
 
-				sibling = Component.literal(resultString.toString());
+				sibling = Component.literal(resultString.toString()).withStyle(sibling.getStyle());
 			}
 
 			playerInsertedName.append(sibling);
