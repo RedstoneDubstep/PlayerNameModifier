@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.electronwill.nightconfig.core.AbstractCommentedConfig;
+import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -29,7 +29,7 @@ public class ModifierConfig {
 	}
 
 	public static class Config {
-		public ConfigValue<List<AbstractCommentedConfig>> playerNameModifiers;
+		public ConfigValue<List<SynchronizedConfig>> playerNameModifiers;
 		public HashMap<List<String>, Pair<String, String>> replacementMap;
 
 		Config(ModConfigSpec.Builder builder) {
@@ -60,10 +60,13 @@ public class ModifierConfig {
 
 	@SubscribeEvent
 	public static void onConfigUpdate(ModConfigEvent event) {
-		List<AbstractCommentedConfig> configList = CONFIG.playerNameModifiers.get();
+		if (event instanceof ModConfigEvent.Unloading)
+			return;
+
+		List<SynchronizedConfig> configList = CONFIG.playerNameModifiers.get();
 		HashMap<List<String>, Pair<String, String>> replacementMap = new LinkedHashMap<>();
 
-		for (AbstractCommentedConfig config : configList) {
+		for (SynchronizedConfig config : configList) {
 			List<String> tags = config.get("tags");
 			String displayName = config.get("displayName");
 			String tabListName = config.get("tabListName");
