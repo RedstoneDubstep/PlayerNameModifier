@@ -84,7 +84,7 @@ public class ModifierEventListener {
 		}
 
 		Component modifiedName;
-		CommandSourceStack stack = new CommandSourceStack(player, player.position(), player.getRotationVector(), (ServerLevel)player.level(), 4, player.getName().getString(), oldDisplayName, player.level().getServer(), player);
+		CommandSourceStack stack = new CommandSourceStack(player.commandSource(), player.position(), player.getRotationVector(), (ServerLevel)player.level(), 4, player.getName().getString(), oldDisplayName, player.level().getServer(), player);
 
 		try {
 			modifiedName = ComponentUtils.updateForEntity(stack, ParserUtils.parseJson(((ServerPlayer) player).server.registryAccess(), new StringReader(pattern), ComponentSerialization.CODEC), player, 0);
