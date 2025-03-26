@@ -9,7 +9,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.mojang.brigadier.StringReader;
 
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.ParserUtils;
+import net.minecraft.commands.arguments.ComponentArgument;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.SnbtGrammar;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.chat.ComponentUtils;
@@ -17,6 +20,8 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.parsing.packrat.commands.CommandArgumentParser;
+import net.minecraft.util.parsing.packrat.commands.Grammar;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.PlayerTeam;
 import net.neoforged.bus.api.EventPriority;
@@ -27,6 +32,8 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 @EventBusSubscriber
 public class ModifierEventListener {
+	private static final Grammar<Tag> TAG_PARSER = SnbtGrammar.createParser(NbtOps.INSTANCE);
+	private static final CommandArgumentParser<Component> COMPONENT_PARSER = TAG_PARSER.withCodec(NbtOps.INSTANCE, TAG_PARSER, ComponentSerialization.CODEC, ComponentArgument.ERROR_INVALID_COMPONENT);
 	private static final List<String> SCHEDULED_REPEATS = new ArrayList<>();
 
 	@SubscribeEvent
@@ -87,7 +94,7 @@ public class ModifierEventListener {
 		CommandSourceStack stack = new CommandSourceStack(player.commandSource(), player.position(), player.getRotationVector(), (ServerLevel)player.level(), 4, player.getName().getString(), oldDisplayName, player.level().getServer(), player);
 
 		try {
-			modifiedName = ComponentUtils.updateForEntity(stack, ParserUtils.parseJson(((ServerPlayer) player).server.registryAccess(), new StringReader(pattern), ComponentSerialization.CODEC), player, 0);
+			modifiedName = ComponentUtils.updateForEntity(stack, COMPONENT_PARSER.parseForCommands(new StringReader(pattern)), player, 0);
 		}
 		catch (Exception e) {
 			PlayerNameModifier.LOGGER.warn(e);
