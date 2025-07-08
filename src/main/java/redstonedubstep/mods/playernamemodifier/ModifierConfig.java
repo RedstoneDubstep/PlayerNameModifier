@@ -16,7 +16,7 @@ import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, value = Dist.DEDICATED_SERVER)
+@EventBusSubscriber(value = Dist.DEDICATED_SERVER)
 public class ModifierConfig {
 	public static final ModConfigSpec SERVER_SPEC;
 	public static final Config CONFIG;
