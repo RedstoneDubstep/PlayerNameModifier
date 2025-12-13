@@ -55,14 +55,14 @@ public class ModifierEventListener {
 		//The logic of ignoring, re-requesting and using the name format event is required, because the component pattern can reference back to the player's prior display name (e.g. via selector components such as @s)
 		//To prevent the display name from consequently getting longer every time it refreshes, we need to run the refreshing once without our modification (to get a "clean" display name).
 		//Only after such a "clean" display name refreshing (and after a delay of about 1 tick) we refresh the display name again and apply our patterns, so our selectors resolve to the "clean" display name that was computed in the first run.
-		else if (!SCHEDULED_REPEATS.contains(player.getGameProfile().getName())) {
-			SCHEDULED_REPEATS.add(player.getGameProfile().getName());
+		else if (!SCHEDULED_REPEATS.contains(player.getGameProfile().name())) {
+			SCHEDULED_REPEATS.add(player.getGameProfile().name());
 			return;
 		}
 
 		Component modifiedName = modifyName(player, event.getDisplayname(), getPatterns(player, false));
 
-		SCHEDULED_REPEATS.remove(player.getGameProfile().getName());
+		SCHEDULED_REPEATS.remove(player.getGameProfile().name());
 		event.setDisplayname(modifiedName);
 	}
 
@@ -72,7 +72,7 @@ public class ModifierEventListener {
 			return;
 
 		Component tabDisplayName = event.getDisplayName();
-		Component modifiedName = modifyName(player, tabDisplayName != null ? tabDisplayName : Component.literal(player.getGameProfile().getName()), getPatterns(player, true));
+		Component modifiedName = modifyName(player, tabDisplayName != null ? tabDisplayName : Component.literal(player.getGameProfile().name()), getPatterns(player, true));
 
 		//Display names and tab list names have different logic regarding teams: For the tab list name, the team prefix/suffix/color doesn't automatically get applied, so we have to do it ourselves, while for the display name, the team components automatically get appended to our modified component.
 		event.setDisplayName(PlayerTeam.formatNameForTeam(player.getTeam(), modifiedName));
