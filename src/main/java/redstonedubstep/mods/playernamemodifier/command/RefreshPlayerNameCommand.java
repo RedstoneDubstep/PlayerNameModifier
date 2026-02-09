@@ -15,7 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 public class RefreshPlayerNameCommand {
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(Commands.literal("refreshplayername")
-				.requires(source -> source.hasPermission(2))
+				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
 				.executes(ctx -> refreshPlayerName(ctx, List.of(ctx.getSource().getPlayerOrException())))
 				.then(Commands.argument("players", EntityArgument.players())
 						.executes(ctx -> refreshPlayerName(ctx, EntityArgument.getPlayers(ctx, "players")))));

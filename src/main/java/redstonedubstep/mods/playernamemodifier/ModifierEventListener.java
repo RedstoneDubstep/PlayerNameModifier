@@ -18,7 +18,6 @@ import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.PlainTextContents;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.parsing.packrat.commands.CommandArgumentParser;
 import net.minecraft.util.parsing.packrat.commands.Grammar;
@@ -91,7 +90,7 @@ public class ModifierEventListener {
 		}
 
 		Component modifiedName;
-		CommandSourceStack stack = new CommandSourceStack(player.commandSource(), player.position(), player.getRotationVector(), (ServerLevel)player.level(), 4, player.getName().getString(), oldDisplayName, player.level().getServer(), player);
+		CommandSourceStack stack = new CommandSourceStack(player.commandSource(), player.position(), player.getRotationVector(), player.level(), player.permissions(), player.getName().getString(), oldDisplayName, player.level().getServer(), player);
 
 		try {
 			modifiedName = ComponentUtils.updateForEntity(stack, COMPONENT_PARSER.parseForCommands(new StringReader(pattern)), player, 0);
