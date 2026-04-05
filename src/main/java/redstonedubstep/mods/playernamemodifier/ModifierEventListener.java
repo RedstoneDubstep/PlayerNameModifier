@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.ResolutionContext;
 import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.parsing.packrat.commands.CommandArgumentParser;
@@ -93,7 +94,7 @@ public class ModifierEventListener {
 		CommandSourceStack stack = new CommandSourceStack(player.commandSource(), player.position(), player.getRotationVector(), player.level(), player.permissions(), player.getName().getString(), oldDisplayName, player.level().getServer(), player);
 
 		try {
-			modifiedName = ComponentUtils.updateForEntity(stack, COMPONENT_PARSER.parseForCommands(new StringReader(pattern)), player, 0);
+			modifiedName = ComponentUtils.resolve(ResolutionContext.create(stack), COMPONENT_PARSER.parseForCommands(new StringReader(pattern)));
 		}
 		catch (Exception e) {
 			PlayerNameModifier.LOGGER.warn(e);
@@ -129,7 +130,7 @@ public class ModifierEventListener {
 
 		for (Map.Entry<List<String>, Pair<String, String>> modifierEntry : ModifierConfig.CONFIG.replacementMap.entrySet()) {
 			for (String tag : modifierEntry.getKey()) {
-				if (player.getTags().contains(tag))
+				if (player.entityTags().contains(tag))
 					patternStack.add("[" + (tabListName ? modifierEntry.getValue().getRight() : modifierEntry.getValue().getLeft()) + "]");
 			}
 		}

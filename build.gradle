@@ -3,52 +3,48 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.190'
-}
-
-repositories {
-    mavenLocal()
+    id 'net.neoforged.moddev' version '2.0.134'
 }
 
 group = 'redstonedubstep.mods'
 version = mod_version
-archivesBaseName = 'playernamemodifier'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+base {
+    archivesName = 'playernamemodifier'
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 
-runs {
-    configureEach {
-        systemProperty 'forge.logging.console.level', 'debug'
-        systemProperty 'forge.logging.markers', 'REGISTRIES'
-        modSource project.sourceSets.main
+neoForge {
+    version = "${neo_version}"
+    validateAccessTransformers = true
+
+    runs {
+        configureEach {
+            logLevel = org.slf4j.event.Level.DEBUG
+            gameDirectory = project.file('run/' + name)
+            ideName = "${project.mc_version} " + ideName.get()
+        }
+
+        client {
+            client()
+        }
+
+        server {
+            server()
+            programArgument('-nogui')
+        }
     }
-	
-	client {
-        workingDirectory project.file('run/client')
-    }
 
-    server {
-        workingDirectory project.file('run/server')
-        programArguments.addAll '-nogui'
-    }
-
-    clientData {
-        workingDirectory project.file('run/data')
-
-        // Recommended logging data for a userdev environment
-        systemProperty 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-        programArguments.addAll '--mod', 'playernamemodifier', '--all', '--output', file('src/generated/resources/').getAbsolutePath()
+    mods {
+        playernamemodifier {
+            sourceSet(sourceSets.main)
+        }
     }
 }
 
 dependencies {
-    // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
-    // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
-    // The userdev artifact is a special name and will get all sorts of transformations applied to it.
-    implementation "net.neoforged:neoforge:${neo_version}"
-
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
     // compile "some.group:artifact:version"
