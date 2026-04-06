@@ -1,4 +1,4 @@
-package redstonedubstep.mods.playernamemodifier.command;
+package redstonedubstep.mods.playernamemodifier;
 
 import java.util.Collection;
 import java.util.List;
@@ -11,6 +11,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import redstonedubstep.mods.playernamemodifier.platform.PlatformHelper;
 
 public class RefreshPlayerNameCommand {
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -23,8 +24,8 @@ public class RefreshPlayerNameCommand {
 
 	private static int refreshPlayerName(CommandContext<CommandSourceStack> ctx, Collection<ServerPlayer> players) {
 		for (ServerPlayer player : players) {
-			player.refreshDisplayName();
-			player.refreshTabListName();
+			PlatformHelper.INSTANCE.refreshDisplayName(player);
+			PlatformHelper.INSTANCE.refreshTabListName(player);
 		}
 
 		ctx.getSource().sendSuccess(() -> Component.literal("Updated display name of " + players.size() + " players"), true);
