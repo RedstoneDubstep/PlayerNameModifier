@@ -8,6 +8,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.mojang.brigadier.StringReader;
 
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.ComponentArgument;
 import net.minecraft.commands.arguments.StyleArgument;
 import net.minecraft.nbt.NbtOps;
@@ -34,15 +35,18 @@ public class ModifierEventListener {
 	private static final Grammar<Tag> TAG_PARSER = SnbtGrammar.createParser(NbtOps.INSTANCE);
 	private static final CommandArgumentParser<Component> COMPONENT_PARSER = TAG_PARSER.withCodec(NbtOps.INSTANCE, TAG_PARSER, ComponentSerialization.CODEC, ComponentArgument.ERROR_INVALID_COMPONENT);
 	private static final CommandArgumentParser<Style> STYLE_PARSER = TAG_PARSER.withCodec(NbtOps.INSTANCE, TAG_PARSER, Style.Serializer.CODEC, StyleArgument.ERROR_INVALID_STYLE);
-	private static final List<String> SCHEDULED_REPEATS = new ArrayList<>();
+	public static boolean refreshingDisplayNames = false;
 
 	@SubscribeEvent(priority = EventPriority.LOW)
 	public static void onPlayerName(PlayerEvent.NameFormat event) {
 		if (!(event.getEntity() instanceof ServerPlayer player))
 			return;
 
-		if (event.getDisplayname() instanceof MutableComponent displayName)
+		if (event.getDisplayname() instanceof MutableComponent displayName) {
+			refreshingDisplayNames = true;
 			event.setDisplayname(modifyName(player, displayName, getPatterns(player, false)));
+			refreshingDisplayNames = false;
+		}
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOW)
@@ -53,13 +57,15 @@ public class ModifierEventListener {
 		Component oldTabName = event.getDisplayName() != null ? event.getDisplayName() : Component.literal(player.getGameProfile().name());
 
 		if (oldTabName instanceof MutableComponent tabDisplayName) {
+			refreshingDisplayNames = true;
 			//Display names and tab list names have different logic regarding teams: For the tab list name, the team prefix/suffix/color doesn't automatically get applied, so we have to do it ourselves, while for the display name, the team components automatically get appended to our modified component.
 			event.setDisplayName(PlayerTeam.formatNameForTeam(player.getTeam(), modifyName(player, tabDisplayName, getPatterns(player, true))));
+			refreshingDisplayNames = false;
 		}
 	}
 
 	private static MutableComponent modifyName(ServerPlayer player, MutableComponent nameToDecorate, List<NameFormatPattern> patternStack) {
-		if (patternStack.isEmpty()) //Should never happen, but just in case
+		if (patternStack.isEmpty()) //Only the case if the player has no matching tags
 			return nameToDecorate;
 
 		NameFormatPattern pattern = patternStack.getLast();
@@ -72,7 +78,8 @@ public class ModifierEventListener {
 
 		Component namePrefix, nameSuffix;
 		Style patternStyle;
-		ResolutionContext resolutionContext = ResolutionContext.builder().withEntityOverride(player).build(); //Not setting a CommandSourceStack here is unorthodox, but fixes all recursion issues due to no level being present to check
+		CommandSourceStack stack = new CommandSourceStack(player.commandSource(), player.position(), player.getRotationVector(), player.level(), player.permissions(), player.getName().getString(), nameToDecorate, player.level().getServer(), player);
+		ResolutionContext resolutionContext = ResolutionContext.create(stack); //Not setting a CommandSourceStack here is unorthodox, but fixes all recursion issues due to no level being present to check
 
 		try {
 			namePrefix = pattern.resolvePrefix(resolutionContext);
@@ -96,10 +103,14 @@ public class ModifierEventListener {
 		List<NameFormatPattern> patternStack = new ArrayList<>();
 
 		for (Map.Entry<List<String>, Pair<NameFormatPattern, NameFormatPattern>> modifierEntry : ModifierConfig.CONFIG.replacementMap.entrySet()) {
-			for (String tag : modifierEntry.getKey()) {
-				if (player.entityTags().contains(tag)) {
-					patternStack.add(tabListName ? modifierEntry.getValue().getRight() : modifierEntry.getValue().getLeft());
-					break;
+			NameFormatPattern pattern = tabListName ? modifierEntry.getValue().getRight() : modifierEntry.getValue().getLeft();
+
+			if (!pattern.isEmpty()) {
+				for (String tag : modifierEntry.getKey()) {
+					if (player.entityTags().contains(tag)) {
+						patternStack.add(pattern);
+						break;
+					}
 				}
 			}
 		}
@@ -127,6 +138,10 @@ public class ModifierEventListener {
 				return null;
 
 			return STYLE_PARSER.parseForCommands(new StringReader(style));
+		}
+
+		public boolean isEmpty() {
+			return prefix == null && suffix == null && style == null;
 		}
 	}
 }
