@@ -1,14 +1,24 @@
-/bin
-/build
-/libs
-/lib
-/.project
-/.classpath
-/.gradle
-/.settings
+# eclipse
+bin
 *.launch
-/run
-/runs
-/src/generated/resources/.cache/*
-/.idea
-/logs
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea/*
+!.idea/scopes
+
+# gradle
+build
+.gradle
+
+# other
+eclipse
+run
+runs

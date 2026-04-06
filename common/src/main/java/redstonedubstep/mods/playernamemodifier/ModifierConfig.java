@@ -9,15 +9,10 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
-import redstonedubstep.mods.playernamemodifier.ModifierEventListener.NameFormatPattern;
+import redstonedubstep.mods.playernamemodifier.PlayerNameModifier.NameFormatPattern;
 
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, value = Dist.DEDICATED_SERVER)
 public class ModifierConfig {
 	public static final ModConfigSpec SERVER_SPEC;
 	public static final Config CONFIG;
@@ -75,11 +70,7 @@ public class ModifierConfig {
 		}
 	}
 
-	@SubscribeEvent
-	public static void onConfigUpdate(ModConfigEvent event) {
-		if (event instanceof ModConfigEvent.Unloading)
-			return;
-
+	public static void onConfigUpdate() {
 		List<SynchronizedConfig> configList = CONFIG.playerNameModifiers.get();
 		HashMap<List<String>, Pair<NameFormatPattern, NameFormatPattern>> replacementMap = new LinkedHashMap<>();
 

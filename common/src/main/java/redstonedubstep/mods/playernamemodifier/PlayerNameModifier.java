@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.mojang.brigadier.StringReader;
 
@@ -19,40 +21,31 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.PlayerTeam;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
-@EventBusSubscriber
-public class ModifierEventListener {
+public class PlayerNameModifier {
+	public static final String MOD_ID = "playernamemodifier";
+	public static final Logger LOGGER = LogManager.getLogger();
 	public static boolean refreshingDisplayNames = false;
 
-	@SubscribeEvent(priority = EventPriority.LOW)
-	public static void onPlayerName(PlayerEvent.NameFormat event) {
-		if (!(event.getEntity() instanceof ServerPlayer player))
-			return;
-
-		if (event.getDisplayname() instanceof MutableComponent displayName) {
+	public static Component onPlayerDisplayName(Player player, Component oldName) {
+		if (player instanceof ServerPlayer serverPlayer && oldName instanceof MutableComponent displayName) {
 			refreshingDisplayNames = true;
-			event.setDisplayname(modifyName(player, displayName, getPatterns(player, false)));
+			oldName = modifyName(serverPlayer, displayName, getPatterns(player, false));
 			refreshingDisplayNames = false;
 		}
+
+		return oldName;
 	}
 
-	@SubscribeEvent(priority = EventPriority.LOW)
-	public static void onPlayerTabListName(PlayerEvent.TabListNameFormat event) {
-		if (!(event.getEntity() instanceof ServerPlayer player))
-			return;
-
-		Component oldTabName = event.getDisplayName() != null ? event.getDisplayName() : Component.literal(player.getGameProfile().getName());
-
-		if (oldTabName instanceof MutableComponent tabDisplayName) {
+	public static Component onPlayerTabListName(Player player, Component oldName) {
+		if (player instanceof ServerPlayer serverPlayer && oldName instanceof MutableComponent tabDisplayName) {
 			refreshingDisplayNames = true;
 			//Display names and tab list names have different logic regarding teams: For the tab list name, the team prefix/suffix/color doesn't automatically get applied, so we have to do it ourselves, while for the display name, the team components automatically get appended to our modified component.
-			event.setDisplayName(PlayerTeam.formatNameForTeam(player.getTeam(), modifyName(player, tabDisplayName, getPatterns(player, true))));
+			oldName = PlayerTeam.formatNameForTeam(player.getTeam(), modifyName(serverPlayer, tabDisplayName, getPatterns(player, true)));
 			refreshingDisplayNames = false;
 		}
+
+		return oldName;
 	}
 
 	private static MutableComponent modifyName(ServerPlayer player, MutableComponent nameToDecorate, List<NameFormatPattern> patternStack) {

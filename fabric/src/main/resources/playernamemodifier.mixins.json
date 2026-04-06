@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "redstonedubstep.mods.playernamemodifier.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"refmap": "playernamemodifier.refmap.json",
+	"mixins": [
+		"PlayerMixin",
+		"SelectorContentsMixin",
+		"ServerPlayerMixin"
+	],
+	"minVersion": "0.8"
+}
