@@ -26,15 +26,18 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 @EventBusSubscriber
 public class ModifierEventListener {
-	private static final List<String> SCHEDULED_REPEATS = new ArrayList<>();
+	public static boolean refreshingDisplayNames = false;
 
 	@SubscribeEvent(priority = EventPriority.LOW)
 	public static void onPlayerName(PlayerEvent.NameFormat event) {
 		if (!(event.getEntity() instanceof ServerPlayer player))
 			return;
 
-		if (event.getDisplayname() instanceof MutableComponent displayName)
+		if (event.getDisplayname() instanceof MutableComponent displayName) {
+			refreshingDisplayNames = true;
 			event.setDisplayname(modifyName(player, displayName, getPatterns(player, false)));
+			refreshingDisplayNames = false;
+		}
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOW)
@@ -45,13 +48,15 @@ public class ModifierEventListener {
 		Component oldTabName = event.getDisplayName() != null ? event.getDisplayName() : Component.literal(player.getGameProfile().getName());
 
 		if (oldTabName instanceof MutableComponent tabDisplayName) {
+			refreshingDisplayNames = true;
 			//Display names and tab list names have different logic regarding teams: For the tab list name, the team prefix/suffix/color doesn't automatically get applied, so we have to do it ourselves, while for the display name, the team components automatically get appended to our modified component.
 			event.setDisplayName(PlayerTeam.formatNameForTeam(player.getTeam(), modifyName(player, tabDisplayName, getPatterns(player, true))));
+			refreshingDisplayNames = false;
 		}
 	}
 
 	private static MutableComponent modifyName(ServerPlayer player, MutableComponent nameToDecorate, List<NameFormatPattern> patternStack) {
-		if (patternStack.isEmpty()) //Should never happen, but just in case
+		if (patternStack.isEmpty()) //Only the case if the player has no matching tags
 			return nameToDecorate;
 
 		NameFormatPattern pattern = patternStack.getLast();
@@ -88,10 +93,14 @@ public class ModifierEventListener {
 		List<NameFormatPattern> patternStack = new ArrayList<>();
 
 		for (Map.Entry<List<String>, Pair<NameFormatPattern, NameFormatPattern>> modifierEntry : ModifierConfig.CONFIG.replacementMap.entrySet()) {
-			for (String tag : modifierEntry.getKey()) {
-				if (player.getTags().contains(tag)) {
-					patternStack.add(tabListName ? modifierEntry.getValue().getRight() : modifierEntry.getValue().getLeft());
-					break;
+			NameFormatPattern pattern = tabListName ? modifierEntry.getValue().getRight() : modifierEntry.getValue().getLeft();
+
+			if (!pattern.isEmpty()) {
+				for (String tag : modifierEntry.getKey()) {
+					if (player.getTags().contains(tag)) {
+						patternStack.add(pattern);
+						break;
+					}
 				}
 			}
 		}
@@ -119,6 +128,10 @@ public class ModifierEventListener {
 				return null;
 
 			return ParserUtils.parseJson(player.server.registryAccess(), new StringReader(style), Style.Serializer.CODEC);
+		}
+
+		public boolean isEmpty() {
+			return prefix == null && suffix == null && style == null;
 		}
 	}
 }
